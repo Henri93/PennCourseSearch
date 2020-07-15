@@ -1,0 +1,45 @@
+{
+  "name": "penncoursesearch",
+  "version": "0.0.1",
+  "private": false,
+  "type": "module",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "bcryptjs": "*",
+    "body-parser": "^1.19.0",
+    "concurrently": "^5.1.0",
+    "cookie-parser": "^1.4.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.3",
+    "socket.io": "^2.3.0"
+  },
+  "scripts": {
+    "dev": "run-p dev:**",
+    "dev:server": "nodemon server.js",
+    "dev:app": "cd client && yarn start",
+    "build:app": "cd client && yarn build",
+    "start": "nodemon server.js --exec babel-node --presets es2015,stage-0",
+    "heroku-postbuild": "cd client && npm install --only=dev && npm install && npm run build"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "description": "",
+  "main": "server.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Henri93/PennCourseSearch.git"
+  },
+  "author": "Henry Garant",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Henri93/PennCourseSearch/issues"
+  },
+  "homepage": "https://github.com/Henri93/PennCourseSearch#readme"
+}

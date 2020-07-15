@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "penncoursesearch",
+  "private_key_id": "9d511cb881d42fabed602638453bfdff82bf61d2",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCbIBrXFl3Z83Lz\n1+Xq2Pz9HqsFlDNR6IIReHZ3Wr7vC6Qcf+wZg6Y0N8jsIOf8jz6ls5Q9/HI4zQ3d\nY/VDZj+ux8CQ925EetSgtN9dqbVUufv3sJ6Gtzg1BsXajjwZ3ci2FH706dr/tYNK\nS1ORpLLxXFm2dAMg9kz7QZqEhXsRWEIEW2ezzAJhy5AojlYSBom7B7o5CzJXhSKO\nhLIo7VWOMcfIz4p245Y+kypoDqqDz7gI5QNb1Z5HKL5pbdDpRRkZc+JhgVPE15Fj\ns54tU5Q8KOglPGnjPShquR8LIqQ+UMnRXHp8gMx+hs4IrYWgXJvhodd0/AS62TjR\nCmqV2lOHAgMBAAECggEANKvjgSm2hzUa0IH7rtCrohSCNFw8SrD8TQtOijs1PnyA\n5i5nT8h8LBnO7qJDsuU+e8vsZ1mqvO+fKA9zLUXwFJv9nhtthPIB9WlEuIxRpima\nTOFbCln2y0Z38rw92viL2ItACk/HTPDoWdcW0oqOOdbGHWXp1AzdWajOWvXpshry\nPWog8hUZZQFKgP02P8s5Ydym5pGG35989E8KoCyp75jY333OWCqkq9mOkPuzNrB3\nINQOSi/0Ks1ulCit7Is0B7n2D/58BeC/pUOEzwHq/cfT492BlAZEL5lOEZR8OYRn\ngsM48WvB2YriS446zASNtrgb8lAh996fqfOqeVfRMQKBgQDZ3wCbZZrCf+XtY6VN\n8Q4OOPh3JTQoeSUSiUwyyYBveTTym2aAegVrkeYRYht3qr91q09UZG4tPYGqgBNn\n6D8sh0MgZTCOUdXT5eKh38U5G/jXAJnFo0/yYeyqYdOmPod1irMIoErmjTESkvf7\nYPxPb9HNwMPSPcQG3JJJk4F0EQKBgQC2Rfz7XgEq39L4Tm41diYipcwjE1/5ps4h\nG02krEy5w6qCE+c1doJLhnNOhg2oA9WkG9LoesB8mLsVzY5FTbKwgIUZMFxMZYVG\nTnfpmLv3Ac6SVCY9f5xPa5MsepJVwoe5uCBZ4i9Kp2TW3SH7Q2Gi3iC+nbvAb0hE\nqP3IAviGFwKBgFCbUAcuXUauuSvOHR+sGs4qR8sVCaobwBqOj5GOuaUEjBFia1cH\nTjARR7SQvqbUlod7fRs1GQpF4k5pmkRsScs4tB4tMfzFzD3cpK/NMZPChJtPTpUv\nqel8T2puTTcJlWZojXqYi32nKUu88mCf7lmZfl8IfaqwTXFYdAsittdxAoGBAJgG\nVdM9+5FL74VEvSz/5xy81j9nGIR7+K6qPB8dyjyiEuO9P/laZ6AgeqnCqz84O4dN\n4aIfR85kAJ5VvNTW0jPebaStrj3V6svSBLejuRpyul1XrDFc7v1axvyxGr5Gqrde\n+DSfrzv/095Vv9L2x0d1JzB1FLSS3F7P6CNbPvdvAoGAQSPvf9NPlhm28oiFI6JW\nPyZVHiP7WWHVt1HAB7GBwBGE2Q2jxIhpSBsmrobDqg8gGAcb6WrQ4y3Ra7L0MTsK\nOw97p9p4teXpTD1ZKKH+vCrCJPS0CtarfZE/g/mqg0/qgOyPY+W7fe6dUu7fUxqn\nnL0mmVWl3ktr4FLUEQDpiUA=\n-----END PRIVATE KEY-----\n",
+  "client_email": "course-download@penncoursesearch.iam.gserviceaccount.com",
+  "client_id": "112716175124106011877",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/course-download%40penncoursesearch.iam.gserviceaccount.com"
+}

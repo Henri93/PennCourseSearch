@@ -2,6 +2,8 @@ import re
 import requests
 from bs4 import BeautifulSoup
 from csv import DictReader, DictWriter
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
 
 def get_course_categories():
     course_categories = []
@@ -66,10 +68,19 @@ def create_course_csv(courses):
     except IOError:
         print("I/O error")
 
+# def drive_function():
+#     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
+#     creds = ServiceAccountCredentials.from_json_keyfile_name('PennCourseSearch-9d511cb881d4.json', scope)
+#     client = gspread.authorize(creds)
+#     sheet = client.open('PennCourseSearch').sheet1
+#     classes = sheet.get_all_records()
+#     print(classes)
+
 def main():
     courses = {}
     course_categories = get_course_categories()
     populate_courses_in_categories(course_categories, courses)
     create_course_csv(courses)
+    
 
 main()
