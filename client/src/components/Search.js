@@ -5,7 +5,7 @@ import { faClock, faAlignLeft } from '@fortawesome/free-solid-svg-icons';
 export default function Search(props) {
   
     return (
-        <div style={{backgroundColor: "#1b1b2f"}}>
+        <div style={{backgroundColor: "#ffe"}}>
             <div>
                 {/* <PageNavbar active="My Profile" loggedInUser={props.loggedInUser} /> */}
                 <h2>Penn Course Search</h2>
