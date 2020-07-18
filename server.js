@@ -1,6 +1,7 @@
 // server.js
 import bodyParser from 'body-parser';
 import logger from 'morgan';
+import Trie from './trie';
 
 // create our instances
 const dotenv = require('dotenv');
@@ -12,6 +13,11 @@ const session = require('express-session');
 const app = express();
 const server = require('http').createServer(app)
 const io = require('socket.io')(server)
+const {
+  getAuthToken,
+  getSpreadSheet,
+  getSpreadSheetValues
+} = require('./googleSheetsService.js');
 
 // instantiate a mongoose connect call
 console.log("node env: " + process.env.NODE_ENV)
@@ -34,7 +40,52 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 
 /* Routes involving Users crud */
 // app.use('/api/login', user.login);
-// app.use('/api/signup', user.signup);
+var courses = {}
+var trie = new Trie()
+
+async function loadCourses(){
+  
+  const spreadsheetId = process.env.SHEET_ID;
+  const sheetName = process.env.SHEET_NAME;
+
+  if(Object.keys(courses).length !== 0){
+    console.log("loading previous courses")
+    res.json(courses)
+  }else{
+    console.log("fetching courses")
+    try {
+      const auth = await getAuthToken();
+      const response = await getSpreadSheetValues({
+        spreadsheetId,
+        sheetName,
+        auth
+      })
+  
+      response.data.values.forEach(function (item, index) {
+          if (index === 0) return 
+          courses[item[0]+item[1]] = {title: item[2], description: item[3]}
+          trie.addWord(item[0]+item[1])
+      });
+
+    } catch(error) {
+      console.log(error.message, error.stack);
+    }
+  }
+}
+
+app.get('/api/search', (req, res, next) => {
+  var word = req.query.word.toUpperCase();
+  var results = []
+  trie.predictWord(word).forEach(function (item, index) {
+    let data = courses[item]
+    data['id'] = item
+    data['type'] = 'class'
+    results.push(data)
+  });
+  res.json({success: true, result: results})
+});
+
+
 
 if (process.env.NODE_ENV === 'production') {
   // Serve any static files
@@ -50,4 +101,5 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+loadCourses()
 server.listen(API_PORT, () => console.log(`Listening on port ${API_PORT}`));

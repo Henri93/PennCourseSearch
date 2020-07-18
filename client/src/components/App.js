@@ -5,6 +5,7 @@ import {
 	Switch,
 	Redirect
 } from 'react-router-dom';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import Search from './Search';
 
 export default class App extends React.Component {
@@ -15,7 +16,7 @@ export default class App extends React.Component {
 
 	render() {
 		return (
-			<div className="App" style={{backgroundColor: "#1b1b2f"}}>
+			<div className="App">
 				<Router>
 					<Switch>
 						<Route exact path='/' component={Search} />
