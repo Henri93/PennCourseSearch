@@ -5,6 +5,36 @@
 .bg-indigo { background: transparent; }
 .text-cyan { color: #35bdff; }
 
+.title{
+  text-align: center;
+}
+
+.title-text{
+  font-family: Lato, Helvetica, sans-serif;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 80px;
+  padding-bottom: 45px;
+  margin-left: 0px;
+  padding-left: 0px;
+  font-size: 2rem;
+  font-weight: 500;
+  color: #4a4a4a;
+  text-align: center;
+  vertical-align: bottom;
+}
+
+.title-logo{
+  width: 64px;
+  height: 64px;
+  vertical-align: middle;
+  border-style: none;
+  margin-bottom: 10px;
+  text-align: left;
+  margin-right: -35px;
+  padding-right: 0px;
+}
+
 .searchbar{
   margin-bottom: auto;
   margin-top: auto;
@@ -14,21 +44,22 @@
   }
 
   .search_input{
-  color: white;
+  color: #4a4a4a;
   border: 0;
   outline: 0;
-  background-color: #353b48;
-  border-radius: 30px;
+  background-color: white;
+  border-radius: 15px;
   padding: 20px;
-  width: 90%;
+  width: 99%;
   caret-color:transparent;
   line-height: 40px;
   transition: width 0.4s linear;
+  box-shadow: rgba(0, 0, 0, 0.07) 0px 2px 14px 0px;
   }
 
   .searchbar:hover > .search_input{
   width: 100%;
-  caret-color:red;
+  caret-color:#4a4a4a;
   transition: width 0.4s linear;
   }
 
@@ -49,14 +80,45 @@
   text-decoration:none;
   }
 
-  .title-text{
-    font-family: Lato, Helvetica, sans-serif;
-    margin-left: auto;
-    margin-right: auto;
-    padding-top: 80px;
-    padding-bottom: 45px;
-    font-size: 2.5rem;
-    font-weight: 500;
+  .searchmenu{
+    border-radius: 10px;
+    border: 1px;
+    border-color: #ebebeb;
+    border-style: solid;
+    background-color: #fff;
+    position: relative;
+    height: 100%;
+    width: 98%;
+    overflow-y: scroll;
+    left: 5px;
+    top: 5px;
+    padding: 10px;
+    max-height: 450px;
+    box-shadow: rgba(0, 0, 0, 0.07) 0px 2px 14px 0px;
+  }
+
+  .searchmenu_item{
+    border-radius: 5px;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 1.3rem;
+    cursor: grab;
     color: #4a4a4a;
-    text-align: center;
+    text-align:left;
+  }
+
+  .item-highlighted{
+    background-color: rgba(0, 81, 255, 0.048);
+  }
+
+  .result_text{
+    font-size: 0.9rem;
+    color: #b8b8b8;
+  }
+
+  .result_code{
+    font-size: 1rem;
+    font-weight: 600;
+    color: #4a4a4a;
+    margin-right: 3px;
   }

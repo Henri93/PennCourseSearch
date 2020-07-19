@@ -63,7 +63,7 @@ async function loadCourses(){
   
       response.data.values.forEach(function (item, index) {
           if (index === 0) return 
-          courses[item[0]+item[1]] = {title: item[2], description: item[3]}
+          courses[item[0]+item[1]] = {prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4])}
           trie.addWord(item[0]+item[1])
       });
 
@@ -74,6 +74,7 @@ async function loadCourses(){
 }
 
 app.get('/api/search', (req, res, next) => {
+  console.time("Server Autocomplete");
   var word = req.query.word.toUpperCase();
   var results = []
   trie.predictWord(word).forEach(function (item, index) {
@@ -83,6 +84,7 @@ app.get('/api/search', (req, res, next) => {
     results.push(data)
   });
   res.json({success: true, result: results})
+  console.timeEnd("Server Autocomplete");
 });
 
 

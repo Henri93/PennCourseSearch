@@ -55,6 +55,11 @@ export default class Trie extends TrieNode {
         var remainingTree = getRemainingTree(string, this);
         if (remainingTree) {
           allWordsHelper(string, remainingTree);
+          
+          //if entire term being searched is entered, also add it
+          if(remainingTree.endWord){
+            allWords.push(string);
+          }
         }
     
         return allWords;

@@ -3,6 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from csv import DictReader, DictWriter
 import gspread
+import json
 from oauth2client.service_account import ServiceAccountCredentials
 
 def get_course_categories():
@@ -21,10 +22,15 @@ def get_course_categories():
 
 def populate_courses_in_categories(course_categories, courses):
     for category in course_categories:
-        print(category)
+        
         url = f'https://catalog.upenn.edu{category}index.html'
         html = requests.get(url)
         soup = BeautifulSoup(html.text, "html.parser")
+
+        category_title = soup.find("h1", {"class" : "page-title"}).text.split('(')[0]
+        category_title = category_title.replace(u'\xa0', u' ')
+        print(category_title)
+
         course_list = soup.find("div", {"class" : "sc_sccoursedescs"})
         
         if course_list is None:
@@ -33,9 +39,13 @@ def populate_courses_in_categories(course_categories, courses):
 
         for course_block in course_list.find_all("div", {"class" : "courseblock"}):
             title = course_block.find("p", {"class" : "courseblocktitle"}).text
+            title = title.replace(u'\xa0', u' ')
+
             description_items = []
             for course_description_extra in course_block.find_all("p", {"class" : "courseblockextra"}):
-                description_items.append(course_description_extra.text)
+                description_item = course_description_extra.text.replace(u'\xa0', u' ')
+                description_items.append(description_item)
+
             code, name = title.split("  ", 1)
             code = ''.join(code.split())
             code_info = re.findall(r'(\w+?)(\d+)', code)[0]
@@ -44,12 +54,13 @@ def populate_courses_in_categories(course_categories, courses):
             course["title"] = name
             course["prefix"] = code_info[0]
             course["number"] = code_info[1]
-            course["description"] = description_items
+            course["description"] = json.dumps(description_items)
+            course["prefixTitle"] = category_title
             courses[code] = course
         
 
 def create_course_csv(courses):
-    csv_columns = ['Prefix','Number','Title','Description','Comments']
+    csv_columns = ['Prefix','Number','Title','Category','Description','Comments']
     csv_file = "courses.csv"
 
     try:
@@ -61,6 +72,7 @@ def create_course_csv(courses):
                 data['Prefix'] = (course_info["prefix"])
                 data['Number'] = (course_info["number"])
                 data['Title'] = (course_info["title"])
+                data['Category'] = (course_info["prefixTitle"])
                 data['Description'] = (course_info["description"])
                 data['Comments'] = ("")
                 writer.writerow(data)
