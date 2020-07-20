@@ -26,10 +26,9 @@ class Search extends React.Component {
         this.autocompleteSearch = this.autocompleteSearch.bind(this);
     }
 
-    componentDidMount() {
-        var t0 = performance.now()
-
-        trackPromise(fetch('/api/courses', {
+    loadCoursesByCode() {
+        var courseCodeTrie_t0 = performance.now()
+        trackPromise(fetch('/api/courseCodeTrie', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -43,17 +42,71 @@ class Search extends React.Component {
 
                     this.setState({
                         courseCodeTrie: Object.assign(new Trie, course_data.courseCodeTrie),
-                        courseTitleTrie: Object.assign(new Trie, course_data.courseTitleTrie),
-                        documents: course_data.documents,
-                        idf: course_data.idf
                     })
                 } else {
                     //display error msg
-                    console.log("Fail to get courses!")
+                    console.log("Fail to get courseCodeTrie!")
                 }
-                var t1 = performance.now()
-                console.log("Courses Download took " + (t1 - t0) + " milliseconds.")
+                var courseCodeTrie_t1 = performance.now()
+                console.log("courseCodeTrie took " + (courseCodeTrie_t1 - courseCodeTrie_t0) + " milliseconds.")
             }))
+    }
+
+    loadCoursesByTitle(){
+        var courseTitleTrie_t0 = performance.now()
+        fetch('/api/courseTitleTrie', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    //successful
+                    let course_data = JSON.parse(data)
+
+                    this.setState({
+                        courseTitleTrie: Object.assign(new Trie, course_data.courseTitleTrie),
+                    })
+                } else {
+                    //display error msg
+                    console.log("Fail to get courseTitleTrie!")
+                }
+                var courseTitleTrie_t1 = performance.now()
+                console.log("courseTitleTrie took " + (courseTitleTrie_t1 - courseTitleTrie_t0) + " milliseconds.")
+            })
+    }
+
+    loadCoursesByIdf(){
+        var courseIdf_t0 = performance.now()
+        fetch('/api/idf', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    //successful
+                    this.setState({
+                        documents: data.documents,
+                        idf: data.idf
+                    })
+                } else {
+                    //display error msg
+                    console.log("Fail to get idf!")
+                }
+                var courseIdf_t1 = performance.now()
+                console.log("courseIdf took " + (courseIdf_t1 - courseIdf_t0) + " milliseconds.")
+            })
+    }
+
+    componentDidMount() {
+        this.loadCoursesByCode()
+        this.loadCoursesByTitle()
+        this.loadCoursesByIdf()
     }
 
     autocompleteSearch() {

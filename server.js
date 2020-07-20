@@ -18,6 +18,8 @@ const {
   getSpreadSheet,
   getSpreadSheetValues
 } = require('./googleSheetsService.js');
+const redis = require('redis');
+const client = redis.createClient();
 
 // instantiate a mongoose connect call
 console.log("node env: " + process.env.NODE_ENV)
@@ -104,38 +106,34 @@ async function loadCourses() {
   } catch (error) {
     console.log(error.message, error.stack);
   }
+
+
+  //cache results
+  // Set cache expiration to 1 hour (60 minutes)
+  client.setex("courseCodeTrie", 3600, JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie}));
+  client.setex("courseTitleTrie", 3600, JSON.stringify({ success: true, courseTitleTrie: courseTitleTrie}));
+
   console.timeEnd("Server Load Courses");
 }
 
-// app.get('/api/courses', async (req, res, next) => {
+app.get('/api/courseCodeTrie', async (req, res, next) => {
+  client.get("courseCodeTrie", (err, result) => {
+    if (result) {
+      res.json(result);
+    } else {
+      client.setex("courseCodeTrie", 3600, JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie}));
+      res.json(JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie}))
+    }
+  });
+});
 
-//   if(courses.length !== 0){
-//     console.log("sending already loaded courses")
-//     res.json(courses)
-//   }else{
-//     console.log("fetching courses")
-//     try {
-//       const spreadsheetId = process.env.SHEET_ID;
-//       const sheetName = process.env.SHEET_NAME;
-//       const auth = await getAuthToken();
-//       const response = await getSpreadSheetValues({
-//         spreadsheetId,
-//         sheetName,
-//         auth
-//       })
-
-//       courses = response.data.values
-//       res.json(courses)
-
-//     } catch(error) {
-//       console.log(error.message, error.stack);
-//     }
-//   }
-// });
-
-app.get('/api/courses', async (req, res, next) => {
-  let tries = { success: true, courseCodeTrie: courseCodeTrie, courseTitleTrie: courseTitleTrie, documents: documents, idf: idf }
+app.get('/api/courseTitleTrie', async (req, res, next) => {
+  let tries = { success: true, courseTitleTrie: courseTitleTrie}
   res.json(JSON.stringify(tries))
+});
+
+app.get('/api/idf', async (req, res, next) => {
+  res.json({ success: true, documents: documents, idf: idf })
 });
 
 app.get('/api/search', (req, res, next) => {
