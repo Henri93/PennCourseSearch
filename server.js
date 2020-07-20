@@ -42,6 +42,9 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 var courseCodeTrie = new Trie()
 var courseTitleTrie = new Trie()
 
+var documents = {}
+var idf = {}
+
 async function loadCourses() {
   console.time("Server Load Courses");
   const spreadsheetId = process.env.SHEET_ID;
@@ -59,19 +62,45 @@ async function loadCourses() {
     //populate courses into tries for autocomplete
     response.data.values.forEach(function (item, index) {
       if (index === 0) return
+
+      let code = item[0] + item[1];
       let course = { prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4]) }
 
       //trie to autcomplete on course code i.e. CIS121
-      courseCodeTrie.addWord(item[0] + item[1], course)
+      courseCodeTrie.addWord(code, course)
       courseCodeTrie.addWord(item[0] + " " + item[1], course)
 
       //trie to autocomplete on words in the title of course
-      item[2].toUpperCase().split(" ").forEach((titleWord, index) => {
+      let items = item[2].toUpperCase().split(" ")
+      if(item[0] === "CIS" && item[1] === "398"){
+        console.log(items)
+      }
+      items.forEach((titleWord, index) => {
         courseTitleTrie.addWord(titleWord, course)
       })
 
-    });
+      //---START TF-IDF Calculations
+      //TF(t) = (Number of times term t appears in a document) / (Total number of terms in the document).
+      //IDF(t) = log_e(Total number of documents / Number of documents with term t in it).
+      //documents[document][term] = (Number of times term t appears in a document)
+      documents[code] = {}
+      item[4].toUpperCase().split(/\W+/).forEach((description_word, index) => {
+        if (!(description_word in documents[code])){
+          documents[code][description_word] = 1
+          
+          if (!(description_word in idf)){
+            idf[description_word] = 1
+          }else{
+            idf[description_word] = idf[description_word] + 1
+          }
+          
+        }else{
+          documents[code][description_word] = documents[code][description_word] + 1
+        }
+      })
+      //---END TF-IDF Calculations
 
+    });
   } catch (error) {
     console.log(error.message, error.stack);
   }
@@ -105,7 +134,7 @@ async function loadCourses() {
 // });
 
 app.get('/api/courses', async (req, res, next) => {
-  let tries = {success: true, courseCodeTrie: courseCodeTrie, courseTitleTrie: courseTitleTrie}
+  let tries = { success: true, courseCodeTrie: courseCodeTrie, courseTitleTrie: courseTitleTrie, documents: documents, idf: idf }
   res.json(JSON.stringify(tries))
 });
 

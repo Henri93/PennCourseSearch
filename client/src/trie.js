@@ -21,7 +21,11 @@ export default class Trie extends TrieNode {
             node.children[str[0]].courses.push(course)
           }
         } else {
-  
+
+          //have already hit this end-point in the trie before, so just add the course
+          if(node.children[str[0]].courses.length > 0){
+            node.children[str[0]].courses.push(course)
+          }
         }
         if (str.length > 1) {
           addWordHelper(node.children[str[0]], str.slice(1), course);
