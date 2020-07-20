@@ -3,6 +3,7 @@ class TrieNode {
       this.children = {};
       this.endWord = null;
       this.value = value;
+      this.courses = [];
     }
 }
 
@@ -11,28 +12,32 @@ export default class Trie extends TrieNode {
       super(null);
     }
   
-    addWord(string) {
-      const addWordHelper = (node, str) => {
+    addWord(string, course) {
+      const addWordHelper = (node, str, course) => {
         if (!node.children[str[0]]) {
           node.children[str[0]] = new TrieNode(str[0]);
           if (str.length === 1) {
-  
             node.children[str[0]].endWord = 1;
+            node.children[str[0]].courses.push(course)
           }
         } else {
   
         }
         if (str.length > 1) {
-          addWordHelper(node.children[str[0]], str.slice(1));
+          addWordHelper(node.children[str[0]], str.slice(1), course);
         }
       };
-      addWordHelper(this, string);
+      addWordHelper(this, string, course);
     }
 
     predictWord(string) {
         var getRemainingTree = function(string, tree) {
           var node = tree;
-          while (string) {
+
+          while (string && string !== "") {
+            if(typeof node === 'undefined'){
+              break
+            }
             node = node.children[string[0]];
             string = string.substr(1);
           }
@@ -40,6 +45,7 @@ export default class Trie extends TrieNode {
         };
     
         var allWords = [];
+        var allCourses = {};
         
         var allWordsHelper = function(stringSoFar, tree) {
           for (let k in tree.children) {
@@ -47,6 +53,10 @@ export default class Trie extends TrieNode {
             var newString = stringSoFar + child.value;
             if (child.endWord) {
               allWords.push(newString);
+
+              child.courses.forEach((course, index) =>{
+                allCourses[course.prefix+course.number] = course
+              })
             }
             allWordsHelper(newString, child);
           }
@@ -59,10 +69,14 @@ export default class Trie extends TrieNode {
           //if entire term being searched is entered, also add it
           if(remainingTree.endWord){
             allWords.push(string);
+
+            remainingTree.courses.forEach((course, index) =>{
+              allCourses[course.prefix+course.number] = course
+            })
           }
         }
     
-        return allWords;
+        return allWords, allCourses;
     }
     
       logAllWords() {

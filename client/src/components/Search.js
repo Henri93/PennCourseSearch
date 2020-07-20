@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClock, faAlignLeft } from '@fortawesome/free-solid-svg-icons';
+import React from "react";
 import "../style/search.css"
 import Autocomplete from 'react-autocomplete';
 import ClassInfo from './ClassInfo';
+import Trie from '../../src/trie';
 
 class Search extends React.Component {
     constructor(props) {
@@ -12,12 +11,56 @@ class Search extends React.Component {
         this.state = {
             searchTerm: "",
             autocompleteData: [],
-            selectedClass: null
+            selectedClass: null,
+            courseCodeTrie: null,
+            courseTitleTrie: null
         }
 
         //autocomplete functions
         this.onChange = this.onChange.bind(this);
         this.onSelect = this.onSelect.bind(this);
+    }
+
+    componentDidMount() {
+        var t0 = performance.now()
+        fetch('/api/courses', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data) {
+                    //successful
+                    let tries = JSON.parse(data)
+
+                    this.setState({
+                        courseCodeTrie: Object.assign(new Trie, tries.courseCodeTrie),
+                        courseTitleTrie: Object.assign(new Trie, tries.courseTitleTrie)
+                    })
+                    
+                    // var courses = {}
+                    // data.forEach((item, index) => {
+                    //     if (index === 0) return 
+                    //     courses[item[0]+item[1]] = {prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4])}
+                    //     this.state.courseCodeTrie.addWord(item[0]+item[1], courses[item[0]+item[1]])
+                        
+                    //     item[2].toUpperCase().split(" ").forEach((titleWord, index) =>{
+                    //         this.state.courseTitleTrie.addWord(titleWord, courses[item[0]+item[1]])
+                    //     })
+                    // });
+                    // console.log(this.state.courseTitleTrie);
+                    // this.setState({
+                    //     courses: courses
+                    // });
+                } else {
+                    //display error msg
+                    console.log("Fail to get courses!")
+                }
+                var t1 = performance.now()
+                console.log("Courses Download took " + (t1 - t0) + " milliseconds.")
+            })
     }
 
     // invoked when the user types something. A delay of 200ms is
@@ -32,27 +75,53 @@ class Search extends React.Component {
             if (this.state.searchTerm !== "" && this.state.searchTerm.length > 1) {
 
                 var t0 = performance.now()
-
-                fetch('/api/search?word=' + this.state.searchTerm, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
+                var results = {}
+                
+                //search for course codes
+                if(this.state.courseCodeTrie !== null){
+                    let courseCodes, courses = this.state.courseCodeTrie.predictWord(this.state.searchTerm.toUpperCase());
+                    
+                    for (const code in courses){
+                        let data = courses[code]
+                        data['id'] = code
+                        results[code] = (data)
                     }
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            //successful
-                            this.setState({
-                                autocompleteData: data.result
-                            });
-                        } else {
-                            //display error msg
-                            console.log("Fail to search for autocomplete!")
-                        }
-                        var t1 = performance.now()
-                        console.log("Autocomplete took " + (t1 - t0) + " milliseconds.")
-                    })
+                    
+                }
+
+                //search for course titles
+                if(this.state.courseTitleTrie !== null){
+
+                    let words, courses = this.state.courseTitleTrie.predictWord(this.state.searchTerm.toUpperCase());
+
+                    for (const code in courses){
+                        let data = courses[code]
+                        data['id'] = code
+                        results[code] = (data)
+                    }
+                    // this.state.courseTitleTrie.predictWord(this.state.searchTerm.toUpperCase()).forEach((item, index) => {
+                    //     Object.values(this.state.courses).filter(obj => {
+                    //         return obj.title.includes(item)
+                    //     }).forEach((classByTitle, index) =>{
+                    //         console.log(classByTitle)
+                    //         let data = classByTitle
+                    //         data['id'] = classByTitle.prefix + classByTitle.number
+                    //         results.push(data)
+                    //     })
+                    //   });
+                }
+
+                //display nothing found if results are empty
+                if(Object.keys(results).length === 0){
+                    let data = {id: "", title: "No Class Found"}
+                    results[""] = (data)
+                }
+
+                this.setState({
+                    autocompleteData: Object.values(results)
+                });
+                var t1 = performance.now()
+                console.log("Autocomplete took " + (t1 - t0) + " milliseconds.")
             }
         });
 
@@ -82,11 +151,6 @@ class Search extends React.Component {
         return e;
     }
 
-
-    componentDidMount() {
-
-    }
-
     render() {
         return (
 
@@ -99,10 +163,10 @@ class Search extends React.Component {
                             <span className="title-text">enn Course Search</span>
                         </div>
                         <Autocomplete
-                            inputProps={{ placeholder: "Enter a class", className: "search_input", ariaLlabel: "Search" }}
+                            inputProps={{ placeholder: "Enter a class, code, or keyword...", className: "search_input", ariaLlabel: "Search" }}
                             wrapperStyle={{ width: "100%" }}
                             wrapperProps={{ className: "searchbar" }}
-                            placeholder="Enter a class"
+                            placeholder="Enter a class, code, or keyword..."
                             getItemValue={item => item.id}
                             value={this.state.searchTerm}
                             items={this.state.autocompleteData}
@@ -116,7 +180,7 @@ class Search extends React.Component {
                                 <div
                                     className={`searchmenu_item ${isHighlighted ? 'item-highlighted' : ''}`}
                                     key={item.id} >
-                                    <p className="result_text"><span className="result_code">{item.id}</span> {item.title}</p>
+                                    <p className="result_text"><span className="result_code">{item.prefix} {item.number}</span> {item.title}</p>
 
                                 </div>
                             )}

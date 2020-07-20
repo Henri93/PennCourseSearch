@@ -1,7 +1,7 @@
 // server.js
 import bodyParser from 'body-parser';
 import logger from 'morgan';
-import Trie from './trie';
+import Trie from './client/src/trie';
 
 // create our instances
 const dotenv = require('dotenv');
@@ -30,48 +30,84 @@ console.log("node env: " + process.env.NODE_ENV)
 // Serve the static files from the React app
 const API_PORT = process.env.PORT || 3001;
 
-
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
-app.use(session({secret: "penncoursesearch"}));
+app.use(session({ secret: "penncoursesearch" }));
 app.use(logger('dev'));
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 /* Routes involving Users crud */
 // app.use('/api/login', user.login);
-var courses = {}
-var trie = new Trie()
+var courseCodeTrie = new Trie()
+var courseTitleTrie = new Trie()
 
-async function loadCourses(){
-  
+async function loadCourses() {
+  console.time("Server Load Courses");
   const spreadsheetId = process.env.SHEET_ID;
   const sheetName = process.env.SHEET_NAME;
 
-  if(Object.keys(courses).length !== 0){
-    console.log("loading previous courses")
-    res.json(courses)
-  }else{
-    console.log("fetching courses")
-    try {
-      const auth = await getAuthToken();
-      const response = await getSpreadSheetValues({
-        spreadsheetId,
-        sheetName,
-        auth
-      })
-  
-      response.data.values.forEach(function (item, index) {
-          if (index === 0) return 
-          courses[item[0]+item[1]] = {prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4])}
-          trie.addWord(item[0]+item[1])
-      });
+  console.log("fetching courses")
+  try {
+    const auth = await getAuthToken();
+    const response = await getSpreadSheetValues({
+      spreadsheetId,
+      sheetName,
+      auth
+    })
 
-    } catch(error) {
-      console.log(error.message, error.stack);
-    }
+    //populate courses into tries for autocomplete
+    response.data.values.forEach(function (item, index) {
+      if (index === 0) return
+      let course = { prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4]) }
+
+      //trie to autcomplete on course code i.e. CIS121
+      courseCodeTrie.addWord(item[0] + item[1], course)
+      courseCodeTrie.addWord(item[0] + " " + item[1], course)
+
+      //trie to autocomplete on words in the title of course
+      item[2].toUpperCase().split(" ").forEach((titleWord, index) => {
+        courseTitleTrie.addWord(titleWord, course)
+      })
+
+    });
+
+  } catch (error) {
+    console.log(error.message, error.stack);
   }
+  console.timeEnd("Server Load Courses");
 }
+
+// app.get('/api/courses', async (req, res, next) => {
+
+//   if(courses.length !== 0){
+//     console.log("sending already loaded courses")
+//     res.json(courses)
+//   }else{
+//     console.log("fetching courses")
+//     try {
+//       const spreadsheetId = process.env.SHEET_ID;
+//       const sheetName = process.env.SHEET_NAME;
+//       const auth = await getAuthToken();
+//       const response = await getSpreadSheetValues({
+//         spreadsheetId,
+//         sheetName,
+//         auth
+//       })
+
+//       courses = response.data.values
+//       res.json(courses)
+
+//     } catch(error) {
+//       console.log(error.message, error.stack);
+//     }
+//   }
+// });
+
+app.get('/api/courses', async (req, res, next) => {
+  let tries = {success: true, courseCodeTrie: courseCodeTrie, courseTitleTrie: courseTitleTrie}
+  res.json(JSON.stringify(tries))
+});
 
 app.get('/api/search', (req, res, next) => {
   console.time("Server Autocomplete");
@@ -83,7 +119,7 @@ app.get('/api/search', (req, res, next) => {
     data['type'] = 'class'
     results.push(data)
   });
-  res.json({success: true, result: results})
+  res.json({ success: true, result: results })
   console.timeEnd("Server Autocomplete");
 });
 
@@ -94,11 +130,11 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'client/build')));
 
   // Handle React routing, return all requests to React app
-  app.get('*', function(req, res) {
+  app.get('*', function (req, res) {
     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
   });
-}else{
-  app.get('*', function(req, res) {
+} else {
+  app.get('*', function (req, res) {
     res.sendFile(path.join(__dirname, 'client/src', 'index.html'));
   });
 }
