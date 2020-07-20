@@ -1,7 +1,7 @@
 // server.js
 import bodyParser from 'body-parser';
 import logger from 'morgan';
-import Trie from '../client/build/trie.js';
+import Trie from '../client/build/static/trie.js';
 
 // create our instances
 const dotenv = require('dotenv');
