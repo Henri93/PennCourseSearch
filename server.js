@@ -19,7 +19,7 @@ const {
   getSpreadSheetValues
 } = require('./googleSheetsService.js');
 const redis = require('redis');
-const client = redis.createClient();
+var client = require('redis').createClient(process.env.REDIS_URL);
 
 // instantiate a mongoose connect call
 console.log("node env: " + process.env.NODE_ENV)
