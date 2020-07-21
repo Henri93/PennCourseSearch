@@ -1,20 +1,14 @@
-import React from "react";
+import {React} from "react";
 import "../style/class.css"
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClock, faAlignLeft } from '@fortawesome/free-solid-svg-icons';
-import { element } from "prop-types";
 
 export default class ClassInfo extends React.Component {
     constructor(props) {
         super(props);
     }
 
-    componentDidMount() {
-
-    }
-
     render() {
 
+        // check that the selected class has all proper fields
         const hasClass = this.props.selectedClass !== null;
         const hasTitle = hasClass && this.props.selectedClass.title && this.props.selectedClass.title !== "";
         const hasId = hasClass && this.props.selectedClass.id && this.props.selectedClass.id !== "";

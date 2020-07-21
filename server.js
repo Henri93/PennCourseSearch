@@ -3,30 +3,21 @@ import bodyParser from 'body-parser';
 import logger from 'morgan';
 
 // create our instances
-const dotenv = require('dotenv');
-dotenv.config();
+const dotenv = require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const app = express();
 const server = require('http').createServer(app)
-const io = require('socket.io')(server)
 const {
   getAuthToken,
   getSpreadSheet,
   getSpreadSheetValues
 } = require('./googleSheetsService.js');
 
-// instantiate a mongoose connect call
-console.log("node env: " + process.env.NODE_ENV)
 
-// add routes
-// var user = require('./server/routes/user')
-
-// set our port to either a predetermined port number if you have set it up, or 3000
-// now we should configure the API to use bodyParser and look for JSON data in the request body
-// Serve the static files from the React app
+// set port to either a predetermined port number if you have set it up, or 3000
 const API_PORT = process.env.PORT || 3001;
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -37,11 +28,13 @@ app.use(logger('dev'));
 app.use(express.static(path.join(__dirname, 'client/build')));
 
 
+//mappings sent to client for searching
 var courses = {}
 var documents = {}
 var idf = {}
 
 async function loadCourses() {
+
   return new Promise(async function (resolve, reject) {
     console.time("Server Load Courses");
     const spreadsheetId = process.env.SHEET_ID;
@@ -62,7 +55,6 @@ async function loadCourses() {
 
         let code = item[0] + item[1];
         let course = { prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4]) }
-
         courses[code] = course
 
         //---START TF-IDF Calculations
@@ -97,18 +89,16 @@ async function loadCourses() {
 }
 
 app.get('/api/courses', async (req, res, next) => {
-  console.time("courses");
+  console.time("/api/courses");
   res.json(courses)
-  console.timeEnd("courses");
+  console.timeEnd("/api/courses");
 });
 
 app.get('/api/idf', async (req, res, next) => {
-  console.time("courseIdf");
+  console.time("/api/idf");
   res.json({ success: true, documents: documents, idf: idf })
-  console.timeEnd("courseIdf");
+  console.timeEnd("/api/idf");
 });
-
-
 
 if (process.env.NODE_ENV === 'production') {
   // Serve any static files
@@ -124,6 +114,7 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+//load courses before starting up the server
 async function main() {
   courses = await loadCourses()
   server.listen(API_PORT, () => console.log(`Listening on port ${API_PORT}`));

@@ -1,14 +1,10 @@
-import React from "react";
+import {React} from "react";
 import "../style/search.css"
-import Autocomplete from 'react-autocomplete';
-import Loader from 'react-promise-loader';
+import {Autocomplete} from 'react-autocomplete';
+import {Loader} from 'react-promise-loader';
 import { usePromiseTracker, trackPromise } from "react-promise-tracker";
-import ClassInfo from './ClassInfo';
-import Trie from '../../src/trie';
-// import openSocket from 'socket.io-client';
-
-// export const socket = openSocket('http://penn-course-search.herokuapp.com')
-// export const socket = openSocket('http://localhost:3000')
+import {ClassInfo} from './ClassInfo';
+import {Trie} from '../../src/trie';
 
 class Search extends React.Component {
     constructor(props) {
@@ -31,6 +27,12 @@ class Search extends React.Component {
         this.autocompleteSearch = this.autocompleteSearch.bind(this);
     }
 
+    /**
+     * Fetch a dictionary of courses from the server
+     * and populate two tries for autocomplete. 
+     * One trie for autcompleting on the course codes.
+     * Another trie for autocompleting on the course title.
+     */
     loadCoursesByCodeAndTitle() {
         var courseCodeTrie_t0 = performance.now()
         trackPromise(fetch('/api/courses', {
@@ -78,6 +80,10 @@ class Search extends React.Component {
         );
     }
 
+    /**
+     * Fetch a dictionary of terms and frequencies
+     * for autocomplete based on words in descriptions. 
+     */
     loadCoursesByIdf() {
         var courseIdf_t0 = performance.now()
         fetch('/api/idf', {
@@ -230,20 +236,8 @@ class Search extends React.Component {
                             Sorry, there was a problem loading classes, try refreshing the page.
                         </div>
 
-                        promiseInProgress &&
-
-                        <div
-                            style={{
-                                width: "100%",
-                                height: "100",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center"
-                            }}
-                        >
-                            <Loader promiseTracker={usePromiseTracker} />
-                        </div>
-
+                        <Loader promiseTracker={usePromiseTracker} />
+                        
                         <Autocomplete
                             inputProps={{ placeholder: "Enter a class, code, or keyword...", className: "search_input", ariaLlabel: "Search" }}
                             wrapperStyle={{ width: "100%" }}

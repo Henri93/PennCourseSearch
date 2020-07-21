@@ -6,7 +6,6 @@
     "babel-cli": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
-    "bcryptjs": "*",
     "body-parser": "^1.19.0",
     "concurrently": "^5.1.0",
     "cookie-parser": "^1.4.5",
@@ -15,8 +14,7 @@
     "express-session": "^1.17.0",
     "googleapis": "^54.1.0",
     "morgan": "^1.10.0",
-    "nodemon": "^2.0.3",
-    "socket.io": "^2.3.0"
+    "nodemon": "^2.0.3"
   },
   "scripts": {
     "dev": "run-p dev:**",

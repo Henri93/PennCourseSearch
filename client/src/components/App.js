@@ -1,4 +1,4 @@
-import React from "react";
+import {React} from "react";
 import {
 	BrowserRouter as Router,
 	Route,
@@ -6,7 +6,7 @@ import {
 	Redirect
 } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import Search from './Search';
+import {Search} from './Search';
 
 export default class App extends React.Component {
 

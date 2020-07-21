@@ -7,6 +7,8 @@ import json
 from oauth2client.service_account import ServiceAccountCredentials
 
 def get_course_categories():
+    """Scraps all categories of courses from Upenn's Course Catalog"""
+
     course_categories = []
     url = 'https://catalog.upenn.edu/courses/index.html'
     html = requests.get(url)
@@ -21,6 +23,12 @@ def get_course_categories():
     return course_categories
 
 def populate_courses_in_categories(course_categories, courses):
+    """Scraps a course category webpage and adds all courses found to a list
+
+    Keyword arguments:
+    course_categories -- the relative urls of all course categories 
+    courses -- a list where the courses maps are added to
+    """
     for category in course_categories:
         
         url = f'https://catalog.upenn.edu{category}index.html'
@@ -60,6 +68,11 @@ def populate_courses_in_categories(course_categories, courses):
         
 
 def create_course_csv(courses):
+    """Creates a csv file from a list of courses
+
+    Keyword arguments:
+    courses -- a list of course mappings
+    """
     csv_columns = ['Prefix','Number','Title','Category','Description','Comments']
     csv_file = "courses.csv"
 
@@ -80,13 +93,6 @@ def create_course_csv(courses):
     except IOError:
         print("I/O error")
 
-# def drive_function():
-#     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-#     creds = ServiceAccountCredentials.from_json_keyfile_name('PennCourseSearch-9d511cb881d4.json', scope)
-#     client = gspread.authorize(creds)
-#     sheet = client.open('PennCourseSearch').sheet1
-#     classes = sheet.get_all_records()
-#     print(classes)
 
 def main():
     courses = {}
