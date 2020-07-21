@@ -122,3 +122,7 @@
     color: #4a4a4a;
     margin-right: 3px;
   }
+
+  .hidden{
+    display: none;
+  }

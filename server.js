@@ -40,8 +40,11 @@ app.use(express.static(path.join(__dirname, 'client/build')));
 /* Routes involving Users crud */
 // app.use('/api/login', user.login);
 var courseCodeTrie = new Trie()
+var courseCodeTrieText
 var courseTitleTrie = new Trie()
+var courseTitleTrieText
 
+var courses = {}
 var documents = {}
 var idf = {}
 
@@ -66,15 +69,13 @@ async function loadCourses() {
       let code = item[0] + item[1];
       let course = { prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4]) }
 
+      courses[code] = course
       //trie to autcomplete on course code i.e. CIS121
       courseCodeTrie.addWord(code, course)
       courseCodeTrie.addWord(item[0] + " " + item[1], course)
 
       //trie to autocomplete on words in the title of course
       let items = item[2].toUpperCase().split(" ")
-      if (item[0] === "CIS" && item[1] === "398") {
-        console.log(items)
-      }
       items.forEach((titleWord, index) => {
         courseTitleTrie.addWord(titleWord, course)
       })
@@ -104,23 +105,27 @@ async function loadCourses() {
   } catch (error) {
     console.log(error.message, error.stack);
   }
+  courseCodeTrieText = JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie })
+  courseTitleTrieText = JSON.stringify({ success: true, courseTitleTrie: courseTitleTrie })
   console.timeEnd("Server Load Courses");
 }
 
 app.get('/api/courseCodeTrie', async (req, res, next) => {
   console.time("courseCodeTrie");
-  let tries = { success: true, courseCodeTrie: courseCodeTrie }
-  res.json(JSON.stringify(tries))
+  res.json(courses)
   console.timeEnd("courseCodeTrie");
 });
 
 app.get('/api/courseTitleTrie', async (req, res, next) => {
-  let tries = { success: true, courseTitleTrie: courseTitleTrie }
-  res.json(JSON.stringify(tries))
+  console.time("courseTitleTrie");
+  res.json(courseTitleTrieText)
+  console.timeEnd("courseTitleTrie");
 });
 
 app.get('/api/idf', async (req, res, next) => {
+  console.time("courseIdf");
   res.json({ success: true, documents: documents, idf: idf })
+  console.timeEnd("courseIdf");
 });
 
 io.on('connection', socket => {

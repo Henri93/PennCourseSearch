@@ -21,7 +21,8 @@ class Search extends React.Component {
             courseCodeTrie: null,
             courseTitleTrie: null,
             documents: {},
-            idf: {}
+            idf: {},
+            loadError: false
         }
 
         //autocomplete functions
@@ -42,18 +43,24 @@ class Search extends React.Component {
             .then(data => {
                 if (data) {
                     //successful
-                    let course_data = JSON.parse(data)
+                    // let course_data = JSON.parse(data)
 
-                    this.setState({
-                        courseCodeTrie: Object.assign(new Trie, course_data.courseCodeTrie),
-                    })
+                    // this.setState({
+                    //     courseCodeTrie: Object.assign(new Trie, course_data.courseCodeTrie),
+                    // })
                 } else {
                     //display error msg
                     console.log("Fail to get courseCodeTrie!")
                 }
                 var courseCodeTrie_t1 = performance.now()
                 console.log("courseCodeTrie took " + (courseCodeTrie_t1 - courseCodeTrie_t0) + " milliseconds.")
-            }))
+            }).catch(err => {
+                console.log(err)
+                this.setState({
+                    loadError: true,
+                });
+            })
+            );
     }
 
     loadCoursesByTitle(){
@@ -79,6 +86,10 @@ class Search extends React.Component {
                 }
                 var courseTitleTrie_t1 = performance.now()
                 console.log("courseTitleTrie took " + (courseTitleTrie_t1 - courseTitleTrie_t0) + " milliseconds.")
+            }).catch(err => {
+                this.setState({
+                    loadError: true,
+                });
             })
     }
 
@@ -104,6 +115,10 @@ class Search extends React.Component {
                 }
                 var courseIdf_t1 = performance.now()
                 console.log("courseIdf took " + (courseIdf_t1 - courseIdf_t0) + " milliseconds.")
+            }).catch(err => {
+                this.setState({
+                    loadError: true,
+                });
             })
     }
 
@@ -234,6 +249,11 @@ class Search extends React.Component {
                             <img src="android-chrome-512x512.png" alt="Penn Course Search" className="title-logo"></img>
                             <span className="title-text">enn Course Search</span>
                         </div>
+                        
+                        <div className={this.state.loadError ? 'alert alert-danger' : "hidden"} role="alert" >
+                                Sorry, there was a problem loading classes, try refreshing the page.
+                        </div>
+
                         promiseInProgress &&
 
                         <div
@@ -247,7 +267,7 @@ class Search extends React.Component {
                         >
                             <Loader promiseTracker={usePromiseTracker} />
                         </div>
-
+                        
                         <Autocomplete
                             inputProps={{ placeholder: "Enter a class, code, or keyword...", className: "search_input", ariaLlabel: "Search" }}
                             wrapperStyle={{ width: "100%" }}
