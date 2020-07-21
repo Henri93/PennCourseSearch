@@ -1,4 +1,7 @@
 // googleSheetsService.js
+// sourced from tutorial at
+// http://codingfundas.com/how-to-read-edit-google-sheets-using-node-js/index.html
+
 const { google } = require('googleapis');
 const sheets = google.sheets('v4');
 
