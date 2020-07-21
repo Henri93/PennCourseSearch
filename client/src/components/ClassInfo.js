@@ -1,4 +1,4 @@
-import {React} from "react";
+import React from "react";
 import "../style/class.css"
 
 export default class ClassInfo extends React.Component {

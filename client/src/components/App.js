@@ -1,12 +1,11 @@
-import {React} from "react";
+import React from "react";
 import {
 	BrowserRouter as Router,
 	Route,
-	Switch,
-	Redirect
+	Switch
 } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import {Search} from './Search';
+import Search from './Search';
 
 export default class App extends React.Component {
 

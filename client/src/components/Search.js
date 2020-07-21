@@ -1,10 +1,10 @@
-import {React} from "react";
+import React from "react";
 import "../style/search.css"
-import {Autocomplete} from 'react-autocomplete';
-import {Loader} from 'react-promise-loader';
+import Autocomplete from 'react-autocomplete';
+import Loader from 'react-promise-loader';
 import { usePromiseTracker, trackPromise } from "react-promise-tracker";
-import {ClassInfo} from './ClassInfo';
-import {Trie} from '../../src/trie';
+import ClassInfo from './ClassInfo';
+import Trie from '../../src/trie';
 
 class Search extends React.Component {
     constructor(props) {
