@@ -1,3 +1,13 @@
+/**
+ * A trie, also called digital tree or prefix tree, is a kind of search tree—an ordered tree 
+ * data structure used to store a dynamic set or associative array where the keys are 
+ * usually strings. Unlike a binary search tree, no node in the tree stores the 
+ * key associated with that node; instead, its position in the tree defines the
+ * key with which it is associated; i.e., the value of the key is distributed 
+ * across the structure.
+ * 
+ * https://en.wikipedia.org/wiki/Trie
+ */
 class TrieNode {
     constructor(value) {
       this.children = {};
@@ -12,6 +22,11 @@ export default class Trie extends TrieNode {
       super(null);
     }
   
+    /**
+     * Add a string and associated course to the trie. Recursive Implementation.
+     * @param {The string to enter into the trie} string 
+     * @param {The course where the string was taken from} course 
+     */
     addWord(string, course) {
       const addWordHelper = (node, str, course) => {
         if (!node.children[str[0]]) {
@@ -34,6 +49,10 @@ export default class Trie extends TrieNode {
       addWordHelper(this, string, course);
     }
 
+    /**
+     * Return all strings and their associated courses for a given prefix.
+     * @param {The prefix of a string you are searching for} string 
+     */
     predictWord(string) {
         var getRemainingTree = function(string, tree) {
           var node = tree;
@@ -82,9 +101,4 @@ export default class Trie extends TrieNode {
     
         return allWords, allCourses;
     }
-    
-      logAllWords() {
-        console.log('------ ALL WORDS IN PREFIX TREE -----------')
-        console.log(this.predictWord(''));
-      }
   }
