@@ -18,8 +18,6 @@ const {
   getSpreadSheet,
   getSpreadSheetValues
 } = require('./googleSheetsService.js');
-const redis = require('redis');
-var client = require('redis').createClient(process.env.REDIS_URL);
 
 // instantiate a mongoose connect call
 console.log("node env: " + process.env.NODE_ENV)
@@ -74,7 +72,7 @@ async function loadCourses() {
 
       //trie to autocomplete on words in the title of course
       let items = item[2].toUpperCase().split(" ")
-      if(item[0] === "CIS" && item[1] === "398"){
+      if (item[0] === "CIS" && item[1] === "398") {
         console.log(items)
       }
       items.forEach((titleWord, index) => {
@@ -87,16 +85,16 @@ async function loadCourses() {
       //documents[document][term] = (Number of times term t appears in a document)
       documents[code] = {}
       item[4].toUpperCase().split(/\W+/).forEach((description_word, index) => {
-        if (!(description_word in documents[code])){
+        if (!(description_word in documents[code])) {
           documents[code][description_word] = 1
-          
-          if (!(description_word in idf)){
+
+          if (!(description_word in idf)) {
             idf[description_word] = 1
-          }else{
+          } else {
             idf[description_word] = idf[description_word] + 1
           }
-          
-        }else{
+
+        } else {
           documents[code][description_word] = documents[code][description_word] + 1
         }
       })
@@ -106,29 +104,18 @@ async function loadCourses() {
   } catch (error) {
     console.log(error.message, error.stack);
   }
-
-
-  //cache results
-  // Set cache expiration to 1 hour (60 minutes)
-  client.setex("courseCodeTrie", 3600, JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie}));
-  client.setex("courseTitleTrie", 3600, JSON.stringify({ success: true, courseTitleTrie: courseTitleTrie}));
-
   console.timeEnd("Server Load Courses");
 }
 
 app.get('/api/courseCodeTrie', async (req, res, next) => {
-  client.get("courseCodeTrie", (err, result) => {
-    if (result) {
-      res.json(result);
-    } else {
-      client.setex("courseCodeTrie", 3600, JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie}));
-      res.json(JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie}))
-    }
-  });
+  console.time("courseCodeTrie");
+  let tries = { success: true, courseCodeTrie: courseCodeTrie }
+  res.json(JSON.stringify(tries))
+  console.timeEnd("courseCodeTrie");
 });
 
 app.get('/api/courseTitleTrie', async (req, res, next) => {
-  let tries = { success: true, courseTitleTrie: courseTitleTrie}
+  let tries = { success: true, courseTitleTrie: courseTitleTrie }
   res.json(JSON.stringify(tries))
 });
 
@@ -136,35 +123,32 @@ app.get('/api/idf', async (req, res, next) => {
   res.json({ success: true, documents: documents, idf: idf })
 });
 
-app.get('/api/search', (req, res, next) => {
-  console.time("Server Autocomplete");
-  var word = req.query.word.toUpperCase();
-  var results = []
-  trie.predictWord(word).forEach(function (item, index) {
-    let data = courses[item]
-    data['id'] = item
-    data['type'] = 'class'
-    results.push(data)
-  });
-  res.json({ success: true, result: results })
-  console.timeEnd("Server Autocomplete");
-});
+io.on('connection', socket => {
+  socket.on('user-connected', () => {
+    console.log("someone connected " + socket.id)
+  })
+
+  socket.on('courseCodeTrie', (callback) => {
+    console.log("someone wants data " + socket.id)
+    callback(JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie }))
+  })
+})
 
 
 
-if (process.env.NODE_ENV === 'production') {
-  // Serve any static files
-  app.use(express.static(path.join(__dirname, 'client/build')));
+  if (process.env.NODE_ENV === 'production') {
+    // Serve any static files
+    app.use(express.static(path.join(__dirname, 'client/build')));
 
-  // Handle React routing, return all requests to React app
-  app.get('*', function (req, res) {
-    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-  });
-} else {
-  app.get('*', function (req, res) {
-    res.sendFile(path.join(__dirname, 'client/src', 'index.html'));
-  });
-}
+    // Handle React routing, return all requests to React app
+    app.get('*', function (req, res) {
+      res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+    });
+  } else {
+    app.get('*', function (req, res) {
+      res.sendFile(path.join(__dirname, 'client/src', 'index.html'));
+    });
+  }
 
-loadCourses()
-server.listen(API_PORT, () => console.log(`Listening on port ${API_PORT}`));
+  loadCourses()
+  server.listen(API_PORT, () => console.log(`Listening on port ${API_PORT}`));

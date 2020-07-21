@@ -5,6 +5,10 @@ import Loader from 'react-promise-loader';
 import { usePromiseTracker, trackPromise } from "react-promise-tracker";
 import ClassInfo from './ClassInfo';
 import Trie from '../../src/trie';
+// import openSocket from 'socket.io-client';
+
+// export const socket = openSocket('http://penn-course-search.herokuapp.com')
+// export const socket = openSocket('http://localhost:3000')
 
 class Search extends React.Component {
     constructor(props) {
@@ -107,6 +111,14 @@ class Search extends React.Component {
         this.loadCoursesByCode()
         this.loadCoursesByTitle()
         this.loadCoursesByIdf()
+
+        // socket.on('connect', (s) => {
+        //     socket.emit('user-connected')
+
+        //     socket.emit('courseCodeTrie', data => {
+        //         console.log(data)
+        //     })
+        // })
     }
 
     autocompleteSearch() {
