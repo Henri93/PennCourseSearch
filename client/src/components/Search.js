@@ -31,9 +31,9 @@ class Search extends React.Component {
         this.autocompleteSearch = this.autocompleteSearch.bind(this);
     }
 
-    loadCoursesByCode() {
+    loadCoursesByCodeAndTitle() {
         var courseCodeTrie_t0 = performance.now()
-        trackPromise(fetch('/api/courseCodeTrie', {
+        trackPromise(fetch('/api/courses', {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -43,11 +43,26 @@ class Search extends React.Component {
             .then(data => {
                 if (data) {
                     //successful
-                    // let course_data = JSON.parse(data)
+                    var courseCodeTrie = new Trie()
+                    var courseTitleTrie = new Trie()
 
-                    // this.setState({
-                    //     courseCodeTrie: Object.assign(new Trie, course_data.courseCodeTrie),
-                    // })
+                    for (const code in data) {
+                        let course = data[code]
+                        courseCodeTrie.addWord(code, course)
+                        courseCodeTrie.addWord(course.prefix + " " + course.number, course)
+
+                        //trie to autocomplete on words in the title of course
+                        let items = course.title.toUpperCase().split(" ")
+                        items.forEach((titleWord, index) => {
+                            courseTitleTrie.addWord(titleWord, course)
+                        })
+                    }
+
+                    this.setState({
+                        courseCodeTrie: courseCodeTrie,
+                        courseTitleTrie: courseTitleTrie
+                    });
+
                 } else {
                     //display error msg
                     console.log("Fail to get courseCodeTrie!")
@@ -60,40 +75,10 @@ class Search extends React.Component {
                     loadError: true,
                 });
             })
-            );
+        );
     }
 
-    loadCoursesByTitle(){
-        var courseTitleTrie_t0 = performance.now()
-        fetch('/api/courseTitleTrie', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    //successful
-                    let course_data = JSON.parse(data)
-
-                    this.setState({
-                        courseTitleTrie: Object.assign(new Trie, course_data.courseTitleTrie),
-                    })
-                } else {
-                    //display error msg
-                    console.log("Fail to get courseTitleTrie!")
-                }
-                var courseTitleTrie_t1 = performance.now()
-                console.log("courseTitleTrie took " + (courseTitleTrie_t1 - courseTitleTrie_t0) + " milliseconds.")
-            }).catch(err => {
-                this.setState({
-                    loadError: true,
-                });
-            })
-    }
-
-    loadCoursesByIdf(){
+    loadCoursesByIdf() {
         var courseIdf_t0 = performance.now()
         fetch('/api/idf', {
             method: 'GET',
@@ -123,17 +108,8 @@ class Search extends React.Component {
     }
 
     componentDidMount() {
-        this.loadCoursesByCode()
-        this.loadCoursesByTitle()
+        this.loadCoursesByCodeAndTitle()
         this.loadCoursesByIdf()
-
-        // socket.on('connect', (s) => {
-        //     socket.emit('user-connected')
-
-        //     socket.emit('courseCodeTrie', data => {
-        //         console.log(data)
-        //     })
-        // })
     }
 
     autocompleteSearch() {
@@ -249,9 +225,9 @@ class Search extends React.Component {
                             <img src="android-chrome-512x512.png" alt="Penn Course Search" className="title-logo"></img>
                             <span className="title-text">enn Course Search</span>
                         </div>
-                        
+
                         <div className={this.state.loadError ? 'alert alert-danger' : "hidden"} role="alert" >
-                                Sorry, there was a problem loading classes, try refreshing the page.
+                            Sorry, there was a problem loading classes, try refreshing the page.
                         </div>
 
                         promiseInProgress &&
@@ -267,7 +243,7 @@ class Search extends React.Component {
                         >
                             <Loader promiseTracker={usePromiseTracker} />
                         </div>
-                        
+
                         <Autocomplete
                             inputProps={{ placeholder: "Enter a class, code, or keyword...", className: "search_input", ariaLlabel: "Search" }}
                             wrapperStyle={{ width: "100%" }}

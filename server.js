@@ -1,7 +1,6 @@
 // server.js
 import bodyParser from 'body-parser';
 import logger from 'morgan';
-import Trie from './trie.js';
 
 // create our instances
 const dotenv = require('dotenv');
@@ -37,89 +36,70 @@ app.use(session({ secret: "penncoursesearch" }));
 app.use(logger('dev'));
 app.use(express.static(path.join(__dirname, 'client/build')));
 
-/* Routes involving Users crud */
-// app.use('/api/login', user.login);
-var courseCodeTrie = new Trie()
-var courseCodeTrieText
-var courseTitleTrie = new Trie()
-var courseTitleTrieText
 
 var courses = {}
 var documents = {}
 var idf = {}
 
 async function loadCourses() {
-  console.time("Server Load Courses");
-  const spreadsheetId = process.env.SHEET_ID;
-  const sheetName = process.env.SHEET_NAME;
+  return new Promise(async function (resolve, reject) {
+    console.time("Server Load Courses");
+    const spreadsheetId = process.env.SHEET_ID;
+    const sheetName = process.env.SHEET_NAME;
 
-  console.log("fetching courses")
-  try {
-    const auth = await getAuthToken();
-    const response = await getSpreadSheetValues({
-      spreadsheetId,
-      sheetName,
-      auth
-    })
-
-    //populate courses into tries for autocomplete
-    response.data.values.forEach(function (item, index) {
-      if (index === 0) return
-
-      let code = item[0] + item[1];
-      let course = { prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4]) }
-
-      courses[code] = course
-      //trie to autcomplete on course code i.e. CIS121
-      courseCodeTrie.addWord(code, course)
-      courseCodeTrie.addWord(item[0] + " " + item[1], course)
-
-      //trie to autocomplete on words in the title of course
-      let items = item[2].toUpperCase().split(" ")
-      items.forEach((titleWord, index) => {
-        courseTitleTrie.addWord(titleWord, course)
+    console.log("fetching courses")
+    try {
+      const auth = await getAuthToken();
+      const response = await getSpreadSheetValues({
+        spreadsheetId,
+        sheetName,
+        auth
       })
 
-      //---START TF-IDF Calculations
-      //TF(t) = (Number of times term t appears in a document) / (Total number of terms in the document).
-      //IDF(t) = log_e(Total number of documents / Number of documents with term t in it).
-      //documents[document][term] = (Number of times term t appears in a document)
-      documents[code] = {}
-      item[4].toUpperCase().split(/\W+/).forEach((description_word, index) => {
-        if (!(description_word in documents[code])) {
-          documents[code][description_word] = 1
+      //populate courses into tries for autocomplete
+      response.data.values.forEach(function (item, index) {
+        if (index === 0) return
 
-          if (!(description_word in idf)) {
-            idf[description_word] = 1
+        let code = item[0] + item[1];
+        let course = { prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4]) }
+
+        courses[code] = course
+
+        //---START TF-IDF Calculations
+        //TF(t) = (Number of times term t appears in a document) / (Total number of terms in the document).
+        //IDF(t) = log_e(Total number of documents / Number of documents with term t in it).
+        //documents[document][term] = (Number of times term t appears in a document)
+        documents[code] = {}
+        item[4].toUpperCase().split(/\W+/).forEach((description_word, index) => {
+          if (!(description_word in documents[code])) {
+            documents[code][description_word] = 1
+
+            if (!(description_word in idf)) {
+              idf[description_word] = 1
+            } else {
+              idf[description_word] = idf[description_word] + 1
+            }
+
           } else {
-            idf[description_word] = idf[description_word] + 1
+            documents[code][description_word] = documents[code][description_word] + 1
           }
+        })
+        //---END TF-IDF Calculations
 
-        } else {
-          documents[code][description_word] = documents[code][description_word] + 1
-        }
-      })
-      //---END TF-IDF Calculations
-
-    });
-  } catch (error) {
-    console.log(error.message, error.stack);
-  }
-  courseCodeTrieText = JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie })
-  courseTitleTrieText = JSON.stringify({ success: true, courseTitleTrie: courseTitleTrie })
-  console.timeEnd("Server Load Courses");
+      });
+    } catch (error) {
+      console.log(error.message, error.stack);
+      reject()
+    }
+    console.timeEnd("Server Load Courses");
+    resolve(courses)
+  })
 }
 
-app.get('/api/courseCodeTrie', async (req, res, next) => {
-  console.time("courseCodeTrie");
+app.get('/api/courses', async (req, res, next) => {
+  console.time("courses");
   res.json(courses)
-  console.timeEnd("courseCodeTrie");
-});
-
-app.get('/api/courseTitleTrie', async (req, res, next) => {
-  console.time("courseTitleTrie");
-  res.json(courseTitleTrieText)
-  console.timeEnd("courseTitleTrie");
+  console.timeEnd("courses");
 });
 
 app.get('/api/idf', async (req, res, next) => {
@@ -128,32 +108,25 @@ app.get('/api/idf', async (req, res, next) => {
   console.timeEnd("courseIdf");
 });
 
-io.on('connection', socket => {
-  socket.on('user-connected', () => {
-    console.log("someone connected " + socket.id)
-  })
-
-  socket.on('courseCodeTrie', (callback) => {
-    console.log("someone wants data " + socket.id)
-    callback(JSON.stringify({ success: true, courseCodeTrie: courseCodeTrie }))
-  })
-})
 
 
+if (process.env.NODE_ENV === 'production') {
+  // Serve any static files
+  app.use(express.static(path.join(__dirname, 'client/build')));
 
-  if (process.env.NODE_ENV === 'production') {
-    // Serve any static files
-    app.use(express.static(path.join(__dirname, 'client/build')));
+  // Handle React routing, return all requests to React app
+  app.get('*', function (req, res) {
+    res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+  });
+} else {
+  app.get('*', function (req, res) {
+    res.sendFile(path.join(__dirname, 'client/public', 'index.html'));
+  });
+}
 
-    // Handle React routing, return all requests to React app
-    app.get('*', function (req, res) {
-      res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
-    });
-  } else {
-    app.get('*', function (req, res) {
-      res.sendFile(path.join(__dirname, 'client/src', 'index.html'));
-    });
-  }
-
-  loadCourses()
+async function main() {
+  courses = await loadCourses()
   server.listen(API_PORT, () => console.log(`Listening on port ${API_PORT}`));
+}
+
+main()
