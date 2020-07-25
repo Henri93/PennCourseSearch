@@ -5,9 +5,9 @@ with their code('CIS120'), their title('Engineering Entrepreneurship I'), or key
 
 ## Serving Static Files
 
-1. Clone the repo and ensure you have Node installed locally.
+1. Clone the repo and ensure you have Node installed locally to precompile the code.
 
-2. Run `build:app` from the project directory to generate client/build, where the static files will be placed
+2. Run `npm run build:app` from the project directory to generate client/build, where the static files will be placed
 
 3. Serve the static files in client/build using Nginx, Apache, or other web server software.
     1. Make sure the entry point is index.html and index.html is found in client/build.
