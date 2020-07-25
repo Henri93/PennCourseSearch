@@ -113,9 +113,44 @@ class Search extends React.Component {
             })
     }
 
+    loadSheetsApi() {
+        const script = document.createElement("script");
+        script.src = "https://apis.google.com/js/api.js";
+    
+        script.onload = () => {
+            window.gapi.load('client', () => {
+            
+            window.gapi.client.setApiKey(process.env.REACT_APP_SHEETS_API_KEY);
+            window.gapi.client.load('sheets', 'v4', () => {
+                console.log("LOADED")
+                var params = {
+                    // The ID of the spreadsheet to retrieve data from.
+                    spreadsheetId: process.env.REACT_APP_SHEETS_ID,  
+            
+                    // The A1 notation of the values to retrieve.
+                    range: process.env.REACT_APP_SHEETS_RANGE
+                  };
+            
+                  var request = window.gapi.client.sheets.spreadsheets.values.get(params);
+                  request.then(function(response) {
+                    response.result.values.array.forEach(element => {
+                        
+                    });
+                  }, function(reason) {
+                    console.error('error: ' + reason.result.error.message);
+                  });
+            });
+          });
+        };
+    
+        document.body.appendChild(script);
+      }
+
     componentDidMount() {
-        this.loadCoursesByCodeAndTitle()
-        this.loadCoursesByIdf()
+        // this.loadCoursesByCodeAndTitle()
+        // this.loadCoursesByIdf()
+    
+        this.loadSheetsApi()
     }
 
     autocompleteSearch() {
@@ -237,7 +272,7 @@ class Search extends React.Component {
                         </div>
 
                         <Loader promiseTracker={usePromiseTracker} />
-                        
+
                         <Autocomplete
                             inputProps={{ placeholder: "Enter a class, code, or keyword...", className: "search_input", ariaLlabel: "Search" }}
                             wrapperStyle={{ width: "100%" }}

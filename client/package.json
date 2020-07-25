@@ -22,7 +22,8 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "*",
     "socket.io-client": "1.7.0",
-    "whatwg-fetch": "^2.0.4"
+    "whatwg-fetch": "^2.0.4",
+    "dotenv": "^8.2.0"
   },
   "scripts": {
     "start": "react-scripts start",
