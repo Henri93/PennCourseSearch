@@ -28,8 +28,8 @@ class Search extends React.Component {
     }
 
     /**
-     * Fetch a dictionary of courses from the server
-     * and populate two tries for autocomplete. 
+     * @Input - A dictionary of courses loadded via SHEETS API
+     * populate two tries for autocomplete. 
      * One trie for autcompleting on the course codes.
      * Another trie for autocompleting on the course title.
      */
@@ -68,7 +68,8 @@ class Search extends React.Component {
     }
 
     /**
-     * Fetch a dictionary of terms and frequencies
+     * @Input - A dictionary of courses loadded via SHEETS API
+     * Create a dictionary of terms and frequencies
      * for autocomplete based on words in descriptions. 
      */
     loadCoursesByIdf(courses) {
@@ -108,6 +109,7 @@ class Search extends React.Component {
     }
 
     loadSheetsApi() {
+        var sheetsApi_t0 = performance.now()
         const script = document.createElement("script");
         script.src = "https://apis.google.com/js/api.js";
 
@@ -116,7 +118,6 @@ class Search extends React.Component {
 
                 window.gapi.client.setApiKey(process.env.REACT_APP_SHEETS_API_KEY);
                 window.gapi.client.load('sheets', 'v4', () => {
-                    console.log("LOADED")
                     var params = {
                         // The ID of the spreadsheet to retrieve data from.
                         spreadsheetId: process.env.REACT_APP_SHEETS_ID,
@@ -124,14 +125,16 @@ class Search extends React.Component {
                         // The A1 notation of the values to retrieve.
                         range: process.env.REACT_APP_SHEETS_RANGE
                     };
-
                     var request = window.gapi.client.sheets.spreadsheets.values.get(params);
-                    request.then(response => {
+                    trackPromise(request.then(response => {
 
                         var courses = {}
                         response.result.values.forEach(item => {
                             courses[item[0] + item[1]] = { prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4]) }
                         });
+
+                        var sheetsApi_t1 = performance.now()
+                        console.log("download courses took " + (sheetsApi_t1 - sheetsApi_t0) + " milliseconds.")
 
                         this.loadCoursesByCodeAndTitle(courses)
                         this.loadCoursesByIdf(courses)
@@ -140,7 +143,7 @@ class Search extends React.Component {
                         this.setState({
                             loadError: true,
                         });
-                    });
+                    }));
                 });
             });
         };
@@ -149,9 +152,6 @@ class Search extends React.Component {
     }
 
     componentDidMount() {
-        // this.loadCoursesByCodeAndTitle()
-        // this.loadCoursesByIdf()
-
         this.loadSheetsApi()
     }
 
