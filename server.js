@@ -36,10 +36,4 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-//load courses before starting up the server
-async function main() {
-  courses = await loadCourses()
-  server.listen(API_PORT, () => console.log(`Listening on port ${API_PORT}`));
-}
-
-main()
+server.listen(API_PORT, () => console.log(`Listening on port ${API_PORT}`));
