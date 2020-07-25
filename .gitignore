@@ -105,3 +105,4 @@ dist
 
 .vscode/
 penncoursesearch-15cb7a7413ec.json
+./client/build
