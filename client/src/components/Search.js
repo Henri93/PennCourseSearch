@@ -33,123 +33,125 @@ class Search extends React.Component {
      * One trie for autcompleting on the course codes.
      * Another trie for autocompleting on the course title.
      */
-    loadCoursesByCodeAndTitle() {
+    loadCoursesByCodeAndTitle(courses) {
         var courseCodeTrie_t0 = performance.now()
-        trackPromise(fetch('/api/courses', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
+
+        if (courses) {
+            //successful
+            var courseCodeTrie = new Trie()
+            var courseTitleTrie = new Trie()
+
+            for (const code in courses) {
+                let course = courses[code]
+                courseCodeTrie.addWord(code, course)
+                courseCodeTrie.addWord(course.prefix + " " + course.number, course)
+
+                //trie to autocomplete on words in the title of course
+                let items = course.title.toUpperCase().split(" ")
+                items.forEach((titleWord, index) => {
+                    courseTitleTrie.addWord(titleWord, course)
+                })
             }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    //successful
-                    var courseCodeTrie = new Trie()
-                    var courseTitleTrie = new Trie()
 
-                    for (const code in data) {
-                        let course = data[code]
-                        courseCodeTrie.addWord(code, course)
-                        courseCodeTrie.addWord(course.prefix + " " + course.number, course)
+            this.setState({
+                courseCodeTrie: courseCodeTrie,
+                courseTitleTrie: courseTitleTrie
+            });
 
-                        //trie to autocomplete on words in the title of course
-                        let items = course.title.toUpperCase().split(" ")
-                        items.forEach((titleWord, index) => {
-                            courseTitleTrie.addWord(titleWord, course)
-                        })
-                    }
+        } else {
+            //display error msg
+            console.log("Fail to get courseCodeTrie!")
+        }
+        var courseCodeTrie_t1 = performance.now()
+        console.log("courseCodeTrie took " + (courseCodeTrie_t1 - courseCodeTrie_t0) + " milliseconds.")
 
-                    this.setState({
-                        courseCodeTrie: courseCodeTrie,
-                        courseTitleTrie: courseTitleTrie
-                    });
-
-                } else {
-                    //display error msg
-                    console.log("Fail to get courseCodeTrie!")
-                }
-                var courseCodeTrie_t1 = performance.now()
-                console.log("courseCodeTrie took " + (courseCodeTrie_t1 - courseCodeTrie_t0) + " milliseconds.")
-            }).catch(err => {
-                console.log(err)
-                this.setState({
-                    loadError: true,
-                });
-            })
-        );
     }
 
     /**
      * Fetch a dictionary of terms and frequencies
      * for autocomplete based on words in descriptions. 
      */
-    loadCoursesByIdf() {
+    loadCoursesByIdf(courses) {
         var courseIdf_t0 = performance.now()
-        fetch('/api/idf', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data) {
-                    //successful
-                    this.setState({
-                        documents: data.documents,
-                        idf: data.idf
-                    })
+        
+        var documents = {}
+        var idf = {}
+        for (const code in courses) {
+            //---START TF-IDF Calculations
+            //TF(t) = (Number of times term t appears in a document) / (Total number of terms in the document).
+            //IDF(t) = log_e(Total number of documents / Number of documents with term t in it).
+            //documents[document][term] = (Number of times term t appears in a document)
+            documents[code] = {}
+            JSON.stringify(courses[code].description).split(/\W+/).forEach((description_word_case, index) => {
+                let description_word = description_word_case.toUpperCase()
+                if (!(description_word in documents[code])) {
+                    documents[code][description_word] = 1
+
+                    if (!(description_word in idf)) {
+                        idf[description_word] = 1
+                    } else {
+                        idf[description_word] = idf[description_word] + 1
+                    }
+
                 } else {
-                    //display error msg
-                    console.log("Fail to get idf!")
+                    documents[code][description_word] = documents[code][description_word] + 1
                 }
-                var courseIdf_t1 = performance.now()
-                console.log("courseIdf took " + (courseIdf_t1 - courseIdf_t0) + " milliseconds.")
-            }).catch(err => {
-                this.setState({
-                    loadError: true,
-                });
             })
+            //---END TF-IDF Calculations
+        }
+        this.setState({
+            documents: documents,
+            idf: idf
+        })
+        var courseIdf_t1 = performance.now()
+        console.log("courseIDF took " + (courseIdf_t1 - courseIdf_t0) + " milliseconds.")
     }
 
     loadSheetsApi() {
         const script = document.createElement("script");
         script.src = "https://apis.google.com/js/api.js";
-    
+
         script.onload = () => {
             window.gapi.load('client', () => {
-            
-            window.gapi.client.setApiKey(process.env.REACT_APP_SHEETS_API_KEY);
-            window.gapi.client.load('sheets', 'v4', () => {
-                console.log("LOADED")
-                var params = {
-                    // The ID of the spreadsheet to retrieve data from.
-                    spreadsheetId: process.env.REACT_APP_SHEETS_ID,  
-            
-                    // The A1 notation of the values to retrieve.
-                    range: process.env.REACT_APP_SHEETS_RANGE
-                  };
-            
-                  var request = window.gapi.client.sheets.spreadsheets.values.get(params);
-                  request.then(function(response) {
-                    response.result.values.array.forEach(element => {
-                        
+
+                window.gapi.client.setApiKey(process.env.REACT_APP_SHEETS_API_KEY);
+                window.gapi.client.load('sheets', 'v4', () => {
+                    console.log("LOADED")
+                    var params = {
+                        // The ID of the spreadsheet to retrieve data from.
+                        spreadsheetId: process.env.REACT_APP_SHEETS_ID,
+
+                        // The A1 notation of the values to retrieve.
+                        range: process.env.REACT_APP_SHEETS_RANGE
+                    };
+
+                    var request = window.gapi.client.sheets.spreadsheets.values.get(params);
+                    request.then(response => {
+
+                        var courses = {}
+                        response.result.values.forEach(item => {
+                            courses[item[0] + item[1]] = { prefix: item[0], number: item[1], title: item[2], prefixTitle: item[3], description: JSON.parse(item[4]) }
+                        });
+
+                        this.loadCoursesByCodeAndTitle(courses)
+                        this.loadCoursesByIdf(courses)
+                    }).catch(err => {
+                        console.log(err)
+                        this.setState({
+                            loadError: true,
+                        });
                     });
-                  }, function(reason) {
-                    console.error('error: ' + reason.result.error.message);
-                  });
+                });
             });
-          });
         };
-    
+
         document.body.appendChild(script);
-      }
+    }
 
     componentDidMount() {
         // this.loadCoursesByCodeAndTitle()
         // this.loadCoursesByIdf()
-    
+
         this.loadSheetsApi()
     }
 
