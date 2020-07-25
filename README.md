@@ -1,6 +1,6 @@
 # PennCourseSearch
 
-Penn Course Search is a web app for finding UPenn classes. You can find information about classes
+[Penn Course Search](https://penn-course-search.herokuapp.com/) is a web app for finding UPenn classes. You can find information about classes
 with their code('CIS120'), their title('Engineering Entrepreneurship I'), or keywords('wine').
 
 ## Serving Static Files
